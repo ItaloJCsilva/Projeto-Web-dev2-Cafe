@@ -3,5 +3,7 @@ uvicorn[standard]
 sqlalchemy
 psycopg2-binary
 pydantic==2.9.2
-pydantic-settings==2.3.4
-
+#pydantic-settings==2.3.4
+pydantic-settings>=2.0.0
+boto3>=1.26.0
+boto3>=1.26.0

@@ -1,43 +1,73 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
-# --- User ---
-class UserBase(BaseModel):
-    username: str
+# --- Usuario ---
+class UsuarioBase(BaseModel):
+    nome_usuario: str
 
-class UserCreate(UserBase):
-    password: str
+class UsuarioCreate(UsuarioBase):
+    senha: str
 
-class UserResponse(UserBase):
+class UsuarioResponse(UsuarioBase):
     id: int
     class Config:
         orm_mode = True
 
-# --- Product ---
-class ProductBase(BaseModel):
-    name: str
-    description: Optional[str] = None
-    price: float
+class UsuarioDetalheResponse(UsuarioResponse):
+    pedidos: Optional[List["PedidoResponse"]] = []
 
-class ProductCreate(ProductBase):
+
+
+# --- Produto ---
+class ProdutoBase(BaseModel):
+    nome: str
+    descricao: Optional[str] = None
+    preco: float
+
+class ProdutoCreate(ProdutoBase):
     pass
 
-class ProductResponse(ProductBase):
+class ProdutoResponse(ProdutoBase):
     id: int
+
     class Config:
         orm_mode = True
 
-# --- Order ---
-class OrderBase(BaseModel):
-    user_id: int
 
-class OrderCreate(OrderBase):
+# --- Item do Pedido ---
+class ItemPedidoBase(BaseModel):
+    produto_id: int
+    quantidade: int
+
+class ItemPedidoCreate(ItemPedidoBase):
     pass
 
-class OrderResponse(BaseModel):
+class ItemPedidoResponse(ItemPedidoBase):
     id: int
-    user_id: int
-    created_at: datetime
+    produto: ProdutoResponse
+
     class Config:
         orm_mode = True
+
+
+# --- Pedido ---
+class PedidoBase(BaseModel):
+    usuario_id: int
+
+class PedidoCreate(PedidoBase):
+    itens: List[ItemPedidoCreate]
+
+class PedidoResponse(BaseModel):
+    id: int
+    usuario_id: int
+    criado_em: datetime
+    itens: List[ItemPedidoResponse] = []
+
+    class Config:
+        orm_mode = True
+
+
+# Para permitir referências circulares
+UsuarioResponse.update_forward_refs()
+PedidoResponse.update_forward_refs()

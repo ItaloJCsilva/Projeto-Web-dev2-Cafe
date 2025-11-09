@@ -4,14 +4,14 @@ from sqlalchemy.orm import Session
 
 # Importa os módulos consolidados
 from app.db.database import Base, engine, get_db
-from app import schemas, services # services contem a logica crud
+from app import schemas, services  # services contém a lógica CRUD
 from app.core.config import settings 
 
 # --- Inicialização da Aplicação ---
 
 # Cria as tabelas automaticamente
 # Importa todos os modelos para garantir que o Base.metadata saiba sobre eles
-import app.models 
+import app.models
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
@@ -27,47 +27,73 @@ def read_root():
 
 
 # --- Controllers (Rotas) ---
-
 router_v1 = APIRouter(prefix="/api/v1")
 
 # Rota de teste simples (Ping)
-@router_v1.get("/ping")
+@router_v1.get("/ping", tags=["Geral"])
 def ping():
     return {"message": "pong"}
 
-# Rotas de Usuários
-@router_v1.get("/users", response_model=list[schemas.UserResponse], tags=["Users"])
-def list_users(db: Session = Depends(get_db)):
-    return services.user_service.get_all(db)
 
-@router_v1.post("/users", response_model=schemas.UserResponse, tags=["Users"])
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    return services.user_service.create(db, user)
+# --- Rotas de Usuários ---
+# --- Rotas de Usuários ---
+@router_v1.get("/usuarios", response_model=list[schemas.UsuarioResponse], tags=["Usuários"])
+def listar_usuarios(db: Session = Depends(get_db)):
+    return services.usuario_service.get_all(db)
 
-# Rotas de Produtos
-@router_v1.get("/products", response_model=list[schemas.ProductResponse], tags=["Products"])
-def list_products(db: Session = Depends(get_db)):
-    return services.product_service.get_all(db)
+@router_v1.get("/usuarios/{usuario_id}", response_model=schemas.UsuarioDetalheResponse, tags=["Usuários"])
+def obter_usuario(usuario_id: int, db: Session = Depends(get_db)):
+    usuario = services.usuario_service.get_by_id(db, usuario_id)
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return usuario
 
-@router_v1.post("/products", response_model=schemas.ProductResponse, tags=["Products"])
-def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    return services.product_service.create(db, product)
+@router_v1.post("/usuarios", response_model=schemas.UsuarioResponse, tags=["Usuários"])
+def criar_usuario(usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+    return services.usuario_service.create(db, usuario)
 
-@router_v1.delete("/products/{product_id}", tags=["Products"])
-def delete_product(product_id: int, db: Session = Depends(get_db)):
-    success = services.product_service.delete(db, product_id)
-    if not success:
+@router_v1.put("/usuarios/{usuario_id}", response_model=schemas.UsuarioResponse, tags=["Usuários"])
+def atualizar_usuario(usuario_id: int, usuario: schemas.UsuarioCreate, db: Session = Depends(get_db)):
+    atualizado = services.usuario_service.update(db, usuario_id, usuario.dict())
+    if not atualizado:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return atualizado
+
+@router_v1.delete("/usuarios/{usuario_id}", tags=["Usuários"])
+def deletar_usuario(usuario_id: int, db: Session = Depends(get_db)):
+    sucesso = services.usuario_service.delete(db, usuario_id)
+    if not sucesso:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    return {"message": "Usuário deletado com sucesso"}
+
+
+
+# --- Rotas de Produtos ---
+@router_v1.get("/produtos", response_model=list[schemas.ProdutoResponse], tags=["Produtos"])
+def listar_produtos(db: Session = Depends(get_db)):
+    return services.produto_service.get_all(db)
+
+@router_v1.post("/produtos", response_model=schemas.ProdutoResponse, tags=["Produtos"])
+def criar_produto(produto: schemas.ProdutoCreate, db: Session = Depends(get_db)):
+    return services.produto_service.create(db, produto)
+
+@router_v1.delete("/produtos/{produto_id}", tags=["Produtos"])
+def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
+    sucesso = services.produto_service.delete(db, produto_id)
+    if not sucesso:
         raise HTTPException(status_code=404, detail="Produto não encontrado")
     return {"message": "Produto deletado com sucesso"}
 
-# Rotas de Pedidos
-@router_v1.get("/orders", response_model=list[schemas.OrderResponse], tags=["Orders"])
-def list_orders(db: Session = Depends(get_db)):
-    return services.order_service.get_all(db)
 
-@router_v1.post("/orders", response_model=schemas.OrderResponse, tags=["Orders"])
-def create_order(order: schemas.OrderCreate, db: Session = Depends(get_db)):
-    return services.order_service.create(db, order)
+# --- Rotas de Pedidos ---
+@router_v1.get("/pedidos", response_model=list[schemas.PedidoResponse], tags=["Pedidos"])
+def listar_pedidos(db: Session = Depends(get_db)):
+    return services.pedido_service.get_all(db)
+
+@router_v1.post("/pedidos", response_model=schemas.PedidoResponse, tags=["Pedidos"])
+def criar_pedido(pedido: schemas.PedidoCreate, db: Session = Depends(get_db)):
+    return services.pedido_service.create(db, pedido)
+
 
 # Inclui todas as rotas
 app.include_router(router_v1)
