@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cafeteria - Fazer Pedido</title>
+    <style>
+        /* Estilos CSS (Mantidos e Adaptados do seu modelo) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 600px; /* Aumentado para melhor visualização do menu */
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: #667eea;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Duas colunas */
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+        }
+
+        .menu-item label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .menu-item input[type="number"] {
+            width: 70px;
+            padding: 8px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .alert.error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .alert.success {
+            background: #efe;
+            color: #3c3;
+            border: 1px solid #cfc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>📋 Menu da Cafeteria</h1>
+            <p>Selecione os itens e a quantidade do seu pedido.</p>
+        </div>
+
+        <div id="alert" class="alert"></div>
+
+        <form id="orderForm">
+            
+            <div class="form-group">
+                
+            </div>
+            
+            <hr style="margin-bottom: 20px;">
+
+            <h2>Itens</h2>
+            <div class="menu-grid">
+                
+                <div class="menu-item">
+                    <label>☕ Café</label>
+                    <input type="number" data-id="59471131" name="cafe" min="0" value="0">
+                </div>
+                
+                <div class="menu-item">
+                    <label>🍗 Coxinha</label>
+                    <input type="number" data-id="90203292" name="coxinha" min="0" value="0">
+                </div>
+                
+                <div class="menu-item">
+                    <label>🍰 Bolo</label>
+                    <input type="number" data-id="51380468" name="bolo" min="0" value="0">
+                </div>
+                
+                <div class="menu-item">
+                    <label>🥪 Sanduíche</label>
+                    <input type="number" data-id="48292483" name="sanduiche" min="0" value="0">
+                </div>
+                
+                <div class="menu-item">
+                    <label>🍫 Achocolatado</label>
+                    <input type="number" data-id="50195890" name="achocolatado" min="0" value="0">
+                </div>
+                
+                <div class="menu-item">
+                    <label>🥟 Pastel</label>
+                    <input type="number" data-id="37173467" name="pastel" min="0" value="0">
+                </div>
+            </div>
+
+            <button type="submit" class="btn">🛒 Fazer Pedido</button>
+        </form>
+        
+        <div class="register-link">
+            <a href="login.html">Voltar para Login</a>
+        </div>
+    </div>
+
+    <script>
+    const API_URL = 'http://localhost:8000'; 
+
+    const form = document.getElementById('orderForm');
+    const alertBox = document.getElementById('alert');
+    const itemInputs = document.querySelectorAll('.menu-item input[type="number"]');
+    
+    
+    const LOCAL_STORAGE_USER_ID = 'usuarioId'; 
+
+    function showAlert(message, type) {
+        alertBox.textContent = message;
+        alertBox.className = `alert ${type}`;
+        alertBox.style.display = 'block';
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 5000);
+    }
+
+    
+    function getUserIdAndCheckLogin() {
+        const userId = localStorage.getItem(LOCAL_STORAGE_USER_ID); 
+        
+        if (!userId) {
+            showAlert('Sessão expirada. Redirecionando para login...', 'error');
+            setTimeout(() => {
+                window.location.href = 'login.html'; 
+            }, 1000);
+            return null;
+        }
+        return parseInt(userId);
+    }
+    
+    
+    getUserIdAndCheckLogin(); 
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        
+        const usuario_id = getUserIdAndCheckLogin();
+        
+        
+        if (usuario_id === null) {
+            return; 
+        }
+
+        const itensDoPedido = [];
+        let totalItensSelecionados = 0;
+
+        
+        itemInputs.forEach(input => {
+            const quantidade = parseInt(input.value);
+            const produto_id = parseInt(input.getAttribute('data-id'));
+
+            if (quantidade > 0) {
+                itensDoPedido.push({
+                    produto_id: produto_id,
+                    quantidade: quantidade
+                });
+                totalItensSelecionados++;
+            }
+        });
+
+        if (totalItensSelecionados === 0) {
+            showAlert('Por favor, selecione pelo menos um item para o pedido.', 'error');
+            return;
+        }
+
+        
+        const orderData = {
+            usuario_id: usuario_id,
+            itens: itensDoPedido
+        };
+
+        try {
+            // 4. Envio da requisição POST
+            const response = await fetch(`${API_URL}/api/v1/pedidos`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) { 
+                showAlert(` criado com sucesso!`);
+                form.reset(); 
+            } else {
+                showAlert("Erro ao criar pedido:");
+            }
+
+        } catch (error) {
+            console.error('Erro de rede/servidor:', error);
+            showAlert('Erro ao conectar com o servidor! Verifique se o FastAPI está rodando.', 'error');
+        }
+    });
+</script>
+</body>
+</html>

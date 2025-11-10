@@ -1,16 +1,11 @@
-# backend/app/main.py
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-# Importa os módulos consolidados
 from app.db.database import Base, engine, get_db
 from app import schemas, services  # services contém a lógica CRUD
 from app.core.config import settings 
+from fastapi.middleware.cors import CORSMiddleware
 
-# --- Inicialização da Aplicação ---
-
-# Cria as tabelas automaticamente
-# Importa todos os modelos para garantir que o Base.metadata saiba sobre eles
 import app.models
 Base.metadata.create_all(bind=engine)
 
@@ -19,23 +14,30 @@ app = FastAPI(
     description="API da cafeteria para gerenciar produtos, pedidos e usuários",
     version=settings.VERSION
 )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"], 
+)
 
-# Rota básica
+
+
+
 @app.get("/")
 def read_root():
     return {"message": "Bem-vindo à API da Cafeteria!"}
 
 
-# --- Controllers (Rotas) ---
+
 router_v1 = APIRouter(prefix="/api/v1")
 
-# Rota de teste simples (Ping)
+
 @router_v1.get("/ping", tags=["Geral"])
 def ping():
     return {"message": "pong"}
 
 
-# --- Rotas de Usuários ---
 # --- Rotas de Usuários ---
 @router_v1.get("/usuarios", response_model=list[schemas.UsuarioResponse], tags=["Usuários"])
 def listar_usuarios(db: Session = Depends(get_db)):
@@ -66,7 +68,12 @@ def deletar_usuario(usuario_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Usuário não encontrado")
     return {"message": "Usuário deletado com sucesso"}
 
-
+@router_v1.post("/login", response_model=schemas.UsuarioResponse, tags=["Autenticação"])
+def login(form_data: schemas.UsuarioLogin, db: Session = Depends(get_db)):
+    usuario = services.usuario_service.authenticate(db, form_data.username, form_data.password)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Credenciais inválidas")
+    return usuario
 
 # --- Rotas de Produtos ---
 @router_v1.get("/produtos", response_model=list[schemas.ProdutoResponse], tags=["Produtos"])

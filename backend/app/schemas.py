@@ -17,7 +17,10 @@ class UsuarioResponse(UsuarioBase):
 class UsuarioDetalheResponse(UsuarioResponse):
     pedidos: Optional[List["PedidoResponse"]] = []
 
-
+# --- Login ---
+class UsuarioLogin(BaseModel):
+    username: str
+    password: str
 
 # --- Produto ---
 class ProdutoBase(BaseModel):

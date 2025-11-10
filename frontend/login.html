@@ -152,8 +152,9 @@
     </div>
 
     <script>
-        // Configuração da API (altere para sua URL do Cloud9 ou Lambda)
-        const API_URL = 'http://localhost:8000/api/v1';
+        
+        
+        const API_URL = 'http://localhost:8000'; 
 
         const form = document.getElementById('loginForm');
         const alertBox = document.getElementById('alert');
@@ -173,32 +174,46 @@
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
+            
+            const loginData = {
+                username: username,
+                password: password
+            };
+
             try {
-                // Por enquanto, login simples - você pode adicionar JWT depois
-                const response = await fetch(`${API_URL}/users`, {
-                    method: 'GET'
+                
+                const response = await fetch(`${API_URL}/api/v1/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData) 
                 });
 
-                const users = await response.json();
-                const user = users.find(u => u.username === username);
+                
+                const result = await response.json();
 
-                if (user) {
-                    // Salva usuário no localStorage
-                    localStorage.setItem('user', JSON.stringify(user));
+                if (response.ok) { 
                     
-                    // Redireciona para o menu
-                    showAlert('Login realizado com sucesso!', 'success');
+                    localStorage.setItem('usuarioId', result.id);
+                    showAlert('Login realizado com sucesso! Redirecionando...', 'success');
+                    
+                    
                     setTimeout(() => {
-                        window.location.href = 'menu.html';
+                        window.location.href = 'menu.html'; 
                     }, 1000);
+
                 } else {
-                    showAlert('Usuário ou senha incorretos!', 'error');
+                    
+                    showAlert(result.message || 'Usuário ou senha incorretos!', 'error');
                 }
+
             } catch (error) {
-                console.error('Erro:', error);
-                showAlert('Erro ao conectar com o servidor!', 'error');
+                console.error('Erro de rede/servidor:', error);
+                showAlert('Erro ao conectar com o servidor! Verifique se o Flask está rodando.', 'error');
             }
         });
+    </script>
     </script>
 </body>
 </html>
